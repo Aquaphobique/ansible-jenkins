@@ -41,6 +41,15 @@ pipeline {
                 echo "Déploiement env=${params.ENVIRONMENT} version=${params.VERSION} dry_run=${params.DRY_RUN}"
             }
         }
+        stage('Job aval') {
+            agent any
+            steps {
+                build job: 'romain-tp4-job-aval', parameters: [
+                    string(name: 'ENVIRONMENT', value: params.ENVIRONMENT),
+                    string(name: 'CHANGE_REFERENCE', value: params.CHANGE_REFERENCE)
+                ]
+            }
+        }
         stage('Post-traitement') {
             agent any
             steps {
