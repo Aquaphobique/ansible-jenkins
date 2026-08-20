@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none
     options {
         timeout(time: 15, unit: 'MINUTES')
         buildDiscarder(logRotator(numToKeepStr: '20'))
@@ -12,12 +12,14 @@ pipeline {
     }
     stages {
         stage('Préparation') {
+            agent any
             steps {
                 checkout scm
                 sh 'git rev-parse --short HEAD'
             }
         }
         stage('Validation') {
+            agent any
             steps {
                 sh '''
                     case "$ENVIRONMENT" in
@@ -27,12 +29,20 @@ pipeline {
                 '''
             }
         }
+        stage('AWS - inventaire') {
+            agent { label 'aws-lab' }
+            steps {
+                sh 'aws sts get-caller-identity'
+            }
+        }
         stage('Exécution') {
+            agent any
             steps {
                 echo "Déploiement env=${params.ENVIRONMENT} version=${params.VERSION} dry_run=${params.DRY_RUN}"
             }
         }
         stage('Post-traitement') {
+            agent any
             steps {
                 sh 'mkdir -p artifacts && echo "done" > artifacts/status.txt'
             }
@@ -40,7 +50,9 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'artifacts/*', allowEmptyArchive: true
+            node('') {
+                archiveArtifacts artifacts: 'artifacts/*', allowEmptyArchive: true
+            }
         }
         failure {
             echo 'Build en échec — voir les logs ci-dessus'
