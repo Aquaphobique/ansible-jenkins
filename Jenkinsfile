@@ -44,13 +44,13 @@ pipeline {
         stage('Ansible - Lint') {
             agent { label 'aws-lab' }
             steps {
-                sh 'ansible-lint ansible/baseline.yml'
+                sh '~/.local/bin/ansible-lint ansible/baseline.yml'
             }
         }
         stage('Ansible - Dry run') {
             agent { label 'aws-lab' }
             steps {
-                sh 'ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff'
+                sh '~/.local/bin/ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff'
             }
         }
         stage('Approbation') {
@@ -63,7 +63,7 @@ pipeline {
         stage('Ansible - Exécution réelle') {
             agent { label 'aws-lab' }
             steps {
-                sh 'ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key'
+                sh '~/.local/bin/ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key'
             }
         }
         stage('Job aval') {
