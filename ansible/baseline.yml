@@ -1,0 +1,21 @@
+---
+- name: Baseline de laboratoire
+  hosts: web_lab
+  become: true
+  tasks:
+    - name: Installer curl
+      ansible.builtin.package:
+        name: curl
+        state: present
+
+    - name: Créer le répertoire de preuve
+      ansible.builtin.file:
+        path: /etc/training
+        state: directory
+        mode: '0755'
+
+    - name: Créer le fichier de preuve
+      ansible.builtin.copy:
+        dest: /etc/training/proof.txt
+        content: "baseline appliquée le {{ ansible_date_time.iso8601 }}\n"
+        mode: '0644'
