@@ -38,19 +38,24 @@ pipeline {
         stage('Exécution') {
             agent any
             steps {
-                echo "Déploiement env=${params.ENVIRONMENT} version=${params.VERSION} dry_run=${params.DRY_RUN}"
+                echo "Déploiement env=${params.ENVIRONMENT} version=${params.VERSION} " +
+                     "dry_run=${params.DRY_RUN}"
             }
         }
         stage('Ansible - Lint') {
             agent { label 'aws-lab' }
             steps {
-                sh '~/.local/bin/ansible-lint ansible/baseline.yml'
+                sh 'mkdir -p reports'
+                sh '~/.local/bin/ansible-lint ansible/baseline.yml | tee reports/ansible-lint.txt'
             }
         }
         stage('Ansible - Dry run') {
             agent { label 'aws-lab' }
             steps {
-                sh '~/.local/bin/ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff'
+                sh '''~/.local/bin/ansible-playbook \
+                    -i ansible/inventory.ini ansible/baseline.yml \
+                    -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff \
+                    | tee reports/ansible-dry-run.txt'''
             }
         }
         stage('Approbation') {
@@ -63,7 +68,9 @@ pipeline {
         stage('Ansible - Exécution réelle') {
             agent { label 'aws-lab' }
             steps {
-                sh '~/.local/bin/ansible-playbook -i ansible/inventory.ini ansible/baseline.yml -e ansible_ssh_private_key_file=~/.ssh/ansible_key'
+                sh '~/.local/bin/ansible-playbook \
+                    -i ansible/inventory.ini ansible/baseline.yml \
+                    -e ansible_ssh_private_key_file=~/.ssh/ansible_key'
             }
         }
         stage('Job aval') {
@@ -85,7 +92,10 @@ pipeline {
     post {
         always {
             node('') {
-                archiveArtifacts artifacts: 'artifacts/*, ansible/inventory.ini', allowEmptyArchive: true
+                archiveArtifacts(
+                    artifacts: 'artifacts/*, ansible/inventory.ini, reports/*',
+                    allowEmptyArchive: true
+                )
             }
         }
         failure {
