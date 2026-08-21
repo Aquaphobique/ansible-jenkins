@@ -19,3 +19,9 @@
         dest: /etc/training/proof.txt
         content: "baseline appliquée le {{ ansible_date_time.iso8601 }}\n"
         mode: '0644'
+
+    - name: S'assurer que le service cron tourne
+      ansible.builtin.service:
+        name: cron
+        state: started
+        enabled: true
