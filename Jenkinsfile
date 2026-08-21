@@ -56,6 +56,7 @@ pipeline {
                     -i ansible/inventory.ini ansible/baseline.yml \
                     -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff \
                     | tee reports/ansible-dry-run.txt'''
+                archiveArtifacts artifacts: 'reports/*', allowEmptyArchive: true
             }
         }
         stage('Approbation') {
@@ -93,7 +94,7 @@ pipeline {
         always {
             node('') {
                 archiveArtifacts(
-                    artifacts: 'artifacts/*, ansible/inventory.ini, reports/*',
+                    artifacts: 'artifacts/*, ansible/inventory.ini',
                     allowEmptyArchive: true
                 )
             }
