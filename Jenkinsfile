@@ -46,7 +46,7 @@ pipeline {
             agent { label 'aws-lab' }
             steps {
                 sh 'mkdir -p reports'
-                sh '~/.local/bin/ansible-lint ansible/baseline.yml | tee reports/ansible-lint.txt'
+                sh '~/.local/bin/ansible-lint ansible/baseline.yml 2>&1 | tee reports/ansible-lint.txt'
             }
         }
         stage('Ansible - Dry run') {
@@ -55,7 +55,7 @@ pipeline {
                 sh '''~/.local/bin/ansible-playbook \
                     -i ansible/inventory.ini ansible/baseline.yml \
                     -e ansible_ssh_private_key_file=~/.ssh/ansible_key --check --diff \
-                    | tee reports/ansible-dry-run.txt'''
+                    2>&1 | tee reports/ansible-dry-run.txt'''
                 archiveArtifacts artifacts: 'reports/*', allowEmptyArchive: true
             }
         }
